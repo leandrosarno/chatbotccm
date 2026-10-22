@@ -7,11 +7,10 @@ CORS(app) # Isso permite que o HTML fale com o Python
 # Aqui criamos um "dicionário" de respostas simples
 # Você pode adicionar quantas quiser!
 RESPONSAS = {
-    "ola": "Olá! Sou o assistente da escola. Em que posso ajudar?",
-    "horario": "As aulas começam às 07:30 e terminam às 12:30.",
-    "secretaria": "A secretaria funciona de segunda a sexta, das 08h às 17h.",
-    "provas": "As provas do bimestre serão na próxima semana. Confira o calendário!",
-    "ajuda": "Você pode me perguntar sobre: Horários, Secretaria ou Provas.",
+    "ola": "Olá! Eu sou a Marina, a assistente virtual do CEU Caminho do Mar. Em que posso ajudar?",
+    "horario": "O CEU funciona todos os dias, das 07h às 23h.",
+    "secretaria": "A secretaria da Gestão funciona de segunda a sexta, das 08h às 17h.",
+    "ajuda": "Você pode me perguntar sobre: Horários, Atividades Esportivas, Culturais e muito mais.",
     
     # Resposta do Telefone com Tabela HTML
     "telefone": """
