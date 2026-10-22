@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assistente Escolar 🎓</title>
     <style>
-        /* Estilos para deixar o chat bonito e moderno */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background-color: #f0f2f5; 
@@ -18,7 +17,7 @@
 
         #chat-container { 
             width: 380px; 
-            height: 550px; 
+            height: 600px; 
             background: white; 
             border-radius: 20px; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
@@ -27,14 +26,31 @@
             overflow: hidden; 
         }
 
+        /* CABEÇALHO COM LOGO */
         #header { 
             background: #0084ff; 
             color: white; 
-            padding: 20px; 
-            font-weight: bold; 
+            padding: 15px; 
             text-align: center; 
-            font-size: 18px;
+            display: flex; 
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #logo { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            background: white; 
+            padding: 5px; 
+            object-fit: contain;
+        }
+
+        #header-text {
+            font-weight: bold; 
+            font-size: 18px;
         }
 
         #messages { 
@@ -43,36 +59,45 @@
             overflow-y: auto; 
             display: flex; 
             flex-direction: column; 
-            gap: 12px; 
+            gap: 15px; 
             background-color: #f9f9f9;
+        }
+
+        /* ESTRUTURA DE MENSAGEM COM AVATAR */
+        .msg-wrapper { 
+            display: flex; 
+            align-items: flex-end; 
+            gap: 8px; 
+            max-width: 85%;
+        }
+
+        .bot-wrapper { align-self: flex-start; }
+        .user-wrapper { align-self: flex-end; flex-direction: row-reverse; }
+
+        .avatar { 
+            width: 35px; 
+            height: 35px; 
+            border-radius: 50%; 
+            object-fit: cover; 
         }
 
         .msg { 
             padding: 10px 15px; 
             border-radius: 15px; 
-            max-width: 80%; 
             font-size: 15px; 
             line-height: 1.4;
             word-wrap: break-word;
         }
-        
-        .msg table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        
+
         .user { 
             background: #0084ff; 
             color: white; 
-            align-self: flex-end; 
             border-bottom-right-radius: 2px;
         }
 
         .bot { 
             background: #e4e6eb; 
             color: #333; 
-            align-self: flex-start; 
             border-bottom-left-radius: 2px;
         }
 
@@ -104,17 +129,26 @@
             transition: background 0.3s;
         }
 
-        button:hover { 
-            background: #0066cc; 
-        }
+        button:hover { background: #0066cc; }
+        
+        /* Ajuste da tabela dentro da mensagem */
+        .msg table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div id="chat-container">
-    <div id="header">Assistente da Escola 🎓</div>
+    <div id="header">
+        <!-- TROQUE 'logo.png' pelo nome do seu arquivo de logo -->
+        <img src="logo.png" alt="Logo Escola" id="logo">
+        <div id="header-text">Assistente da Escola 🎓</div>
+    </div>
     <div id="messages">
-        <div class="msg bot">Olá! Sou o assistente virtual da escola. .Como posso te ajudar hoje?</div>
+        <!-- Mensagem Inicial com Avatar -->
+        <div class="msg-wrapper bot-wrapper">
+            <img src="avatar.png" class="avatar" alt="Bot">
+            <div class="msg bot">Olá! Sou o assistente virtual da escola. Como posso te ajudar hoje?</div>
+        </div>
     </div>
     <div id="input-area">
         <input type="text" id="user-input" placeholder="Digite sua dúvida...">
@@ -130,16 +164,19 @@
 
         if (userText === "") return;
 
-        // 1. Mostra a mensagem do usuário na tela
-        msgDiv.innerHTML += `<div class="msg user">${userText}</div>`;
-        input.value = ""; // Limpa o campo de digitação
+        // 1. Adiciona mensagem do USUÁRIO
+        msgDiv.innerHTML += `
+            <div class="msg-wrapper user-wrapper">
+                <div class="msg user">${userText}</div>
+                <img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png" class="avatar" alt="User">
+            </div>`;
         
-        // Rola para baixo automaticamente
+        input.value = "";
         msgDiv.scrollTop = msgDiv.scrollHeight;
 
         try {
-            // 🚀 ATENÇÃO
-            const RENDER_URL = 'https://chatbotccm.onrender.com';
+            // 🚀 COLOQUE SEU LINK DO RENDER AQUI ABAIXO 👇
+            const RENDER_URL = 'https://SEU-APP-NO-RENDER.onrender.com/chat';
 
             const response = await fetch(RENDER_URL, {
                 method: 'POST',
@@ -147,29 +184,28 @@
                 body: JSON.stringify({ mensagem: userText })
             });
 
-            if (!response.ok) {
-                throw new Error('Erro na resposta do servidor');
-            }
-
             const data = await response.json();
             
-            // 2. Mostra a resposta do bot na tela
-            msgDiv.innerHTML += `<div class="msg bot">${data.resposta}</div>`;
+            // 2. Adiciona resposta do BOT com Avatar
+            msgDiv.innerHTML += `
+                <div class="msg-wrapper bot-wrapper">
+                    <img src="avatar.png" class="avatar" alt="Bot">
+                    <div class="msg bot">${data.resposta}</div>
+                </div>`;
             
         } catch (error) {
-            msgDiv.innerHTML += `<div class="msg bot">Ops! O servidor está acordando ou houve um erro. Tente novamente em alguns segundos.</div>`;
-            console.error("Erro:", error);
+            msgDiv.innerHTML += `
+                <div class="msg-wrapper bot-wrapper">
+                    <img src="avatar.png" class="avatar" alt="Bot">
+                    <div class="msg bot">Ops! O servidor está acordando ou houve um erro.</div>
+                </div>`;
         }
 
-        // Rola para baixo novamente após a resposta do bot
         msgDiv.scrollTop = msgDiv.scrollHeight;
     }
 
-    // Permite enviar a mensagem apertando a tecla "Enter"
     document.getElementById('user-input').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
+        if (e.key === 'Enter') { sendMessage(); }
     });
 </script>
 
