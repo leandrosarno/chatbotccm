@@ -10,11 +10,20 @@ CORS(app)
 
 def get_spreadsheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds_dict = json.loads(os.environ.get('GOOGLE_JSON'))
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
-    client = gspread.authorize(creds)
-    spreadsheet = client.open("carteirinhas do CEU") # <--- VERIFIQUE O NOME
-    return spreadsheet
+    
+    # Pegando a chave do JSON do Render
+    try:
+        creds_dict = json.loads(os.environ.get('GOOGLE_JSON'))
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        client = gspread.authorize(creds)
+        
+        # 🚀 ALTERAÇÃO AQUI: Use o ID da sua planilha em vez do nome!
+        # Substitua 'COLOQUE_O_ID_AQUI' pelo código gigante da sua URL
+        spreadsheet = client.open_by_key('1CM5X5d6yoK1_UceTw6Sq-XG-bvwrGxcZpzcbuO6Edyk') 
+        return spreadsheet
+    except Exception as e:
+        print(f"Erro ao conectar com Google Sheets: {e}")
+        return None
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -23,40 +32,49 @@ def chat():
 
     try:
         spreadsheet = get_spreadsheet()
+        if not spreadsheet:
+            return jsonify({"resposta": "Erro de conexão com o banco de dados."})
 
-        # MENU: ATIVIDADES -> Puxa da aba TURMAS
-        if "atividades" in msg:
+        # 1. Se o usuário pediu Atividades/Turmas
+        if "atividades" in msg or "turma" in msg:
             aba_turmas = spreadsheet.worksheet("TURMAS")
-            dados = aba_turmas.get_all_records()
+            dados_t = aba_turmas.get_all_records()
             
+            if not dados_t:
+                return jsonify({"resposta": "A aba de turmas está vazia no momento."})
+
             tabela = "<b>📚 Nossas Atividades/Turmas:</b><br><table style='width:100%; border-collapse:collapse; font-size:12px;'>"
             tabela += "<tr style='background-color:#ddd;'><th>Turma</th><th>Horário</th></tr>"
-            for linha in dados:
-                tabela += f"<tr><td>{linha.get('MODALIDADE')}</td><td>{linha.get('HOR_AULAS')}</td></tr>"
+            for linha in dados_t:
+                tabela += f"<tr><td>{linha.get('MODALIDADE', 'N/A')}</td><td>{linha.get('HOR_AULAS', 'N/A')}</td></tr>"
             tabela += "</table>"
             return jsonify({"resposta": tabela})
 
-        # MENU: SECRETARIA/FAQ -> Puxa da aba FAQ
-        elif "secretaria" in msg or "duvidas" in msg:
+        # 2. Se o usuário pediu Telefone
+        elif "telefone" in msg:
+            # Vamos buscar a resposta do telefone na aba FAQ para não ficar estático!
+            aba_faq = spreadsheet.worksheet("FAQ")
+            dados_faq = aba_faq.get_all_records()
+            for linha in dados_faq:
+                if "telefone" in linha.get('Pergunta', '').lower():
+                    return jsonify({"resposta": linha.get('Resposta')})
+            return jsonify({"resposta": "Informação de telefone não encontrada na planilha."})
+
+        # 3. Qualquer outra pergunta -> Busca na aba FAQ
+        else:
             aba_faq = spreadsheet.worksheet("FAQ")
             dados_faq = aba_faq.get_all_records()
             
-            respostas = "<b>📋 Perguntas Frequentes:</b><br><br>"
             for linha in dados_faq:
-                respostas += f"<b>{linha.get('Pergunta')}</b>: {linha.get('Resposta')}<br><br>"
-            return jsonify({"resposta": respostas})
+                pergunta_planilha = str(linha.get('Pergunta', '')).lower().strip()
+                if pergunta_planilha and (pergunta_planilha in msg or msg in pergunta_planilha):
+                    return jsonify({"resposta": linha.get('Resposta')})
 
-        # MENU: TELEFONE
-        elif "telefone" in msg:
-            return jsonify({"resposta": "<b>📞 PABX: 3396-5600</b><br>Opção 1: Secretaria | Opção 2: CEI | Opção 3: EMEI | Opção 4: EMEF"})
-
-        # RESPOSTA PADRÃO
-        else:
-            return jsonify({"resposta": "Por favor, escolha uma das opções no menu abaixo para que eu possa te ajudar! 👇"})
+            return jsonify({"resposta": "Não encontrei essa informação na planilha. Tente clicar em um dos botões do menu!"})
 
     except Exception as e:
-        print(f"Erro: {e}")
-        return jsonify({"resposta": "Houve um erro ao acessar a planilha. Verifique as configurações."})
+        print(f"Erro geral: {e}")
+        return jsonify({"resposta": "Ocorreu um erro interno ao processar sua solicitação."})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
