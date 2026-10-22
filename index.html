@@ -157,52 +157,51 @@
 </div>
 
 <script>
-    async function sendMessage() {
-        const input = document.getElementById('user-input');
-        const msgDiv = document.getElementById('messages');
-        const userText = input.value.trim();
+async function sendMessage() {
+    const input = document.getElementById('user-input');
+    const msgDiv = document.getElementById('messages');
+    const userText = input.value.trim();
 
-        if (userText === "") return;
+    if (userText === "") return;
 
-        // 1. Adiciona mensagem do USUÁRIO
-        msgDiv.innerHTML += `
-            <div class="msg-wrapper user-wrapper">
-                <div class="msg user">${userText}</div>
-                <img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png" class="avatar" alt="User">
+    // Limpa o campo de input imediatamente
+    input.value = "";
+
+    // Função auxiliar para criar o HTML da mensagem com segurança
+    function createMessageHTML(text, type) {
+        const isBot = type === 'bot';
+        return `
+            <div class="msg-wrapper ${isBot ? 'bot-wrapper' : 'user-wrapper'}">
+                ${isBot ? `<img src="avatar.png" class="avatar" alt="Bot">` : ''}
+                <div class="msg ${type}">${text}</div>
+                ${!isBot ? `<img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png" class="avatar" alt="User">` : ''}
             </div>`;
-        
-        input.value = "";
-        msgDiv.scrollTop = msgDiv.scrollHeight;
-
-        try {
-            // 🚀 COLOQUE SEU LINK DO RENDER AQUI ABAIXO 👇
-            const RENDER_URL = 'https://chatbotccm.onrender.com/chat';
-
-            const response = await fetch(RENDER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mensagem: userText })
-            });
-
-            const data = await response.json();
-            
-            // 2. Adiciona resposta do BOT com Avatar
-            msgDiv.innerHTML += `
-                <div class="msg-wrapper bot-wrapper">
-                    <img src="avatar.png" class="avatar" alt="Bot">
-                    <div class="msg bot">${data.resposta}</div>
-                </div>`;
-            
-        } catch (error) {
-            msgDiv.innerHTML += `
-                <div class="msg-wrapper bot-wrapper">
-                    <img src="avatar.png" class="avatar" alt="Bot">
-                    <div class="msg bot">Ops! O servidor está acordando ou houve um erro.</div>
-                </div>`;
-        }
-
-        msgDiv.scrollTop = msgDiv.scrollHeight;
     }
+
+    // 1. Adiciona mensagem do USUÁRIO
+    msgDiv.insertAdjacentHTML('beforeend', createMessageHTML(userText, 'user'));
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+
+    try {
+        const RENDER_URL = 'https://chatbotccm.onrender.com/chat'; // <-- COLOQUE SEU LINK
+
+        const response = await fetch(RENDER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mensagem: userText })
+        });
+
+        const data = await response.json();
+        
+        // 2. Adiciona resposta do BOT
+        msgDiv.insertAdjacentHTML('beforeend', createMessageHTML(data.resposta, 'bot'));
+        
+    } catch (error) {
+        msgDiv.insertAdjacentHTML('beforeend', createMessageHTML("Ops! O servidor está acordando ou houve um erro.", 'bot'));
+    }
+
+    msgDiv.scrollTop = msgDiv.scrollHeight;
+}
 
     document.getElementById('user-input').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') { sendMessage(); }
