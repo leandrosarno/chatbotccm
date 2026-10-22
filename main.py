@@ -9,8 +9,9 @@ CORS(app) # Isso permite que o HTML fale com o Python
 RESPONSAS = {
     "ola": "Olá! Sou o assistente do CEU Caminho do Mar. Em que posso ajudar?",
     "horario": "o CEU funciona todos os dias, das 07h às 23h.",
-    "secretaria": "A secretaria funciona de segunda a sexta, das 07h às 20h.",
-    "ajuda": "Você pode me perguntar sobre: Horários, Secretaria ou Provas."
+    "secretaria": "A secretaria funciona de segunda a sexta, das 07h às 20h e aos sábados das 09h às 16h.",
+    "ajuda": "Você pode me perguntar sobre: Horários, Secretaria ou Provas.",
+    "telefone": "PABX 3396-5600 | Opção 1 Secretaria da Gestãos (assuntos sobre ações Culturais, Educacionais e Esportivas) | Opção 2 CEI (Centro de Educação Infantil) | Opção 3 EMEI (Escola Municipal de Ensino Infantil) | Opção 4 EMEF (Escola Municipal de Ensino Fundamental)"
 }
 
 @app.route('/chat', methods=['POST'])
