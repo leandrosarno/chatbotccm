@@ -13,67 +13,50 @@ def get_spreadsheet():
     creds_dict = json.loads(os.environ.get('GOOGLE_JSON'))
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     client = gspread.authorize(creds)
-    # VERIFIQUE SE O NOME ABAIXO ESTÁ EXATAMENTE IGUAL AO DA SUA PLANILHA
-    spreadsheet = client.open("carteirinhas do CEU") 
+    spreadsheet = client.open("carteirinhas do CEU") # <--- VERIFIQUE O NOME
     return spreadsheet
-
-RESPONSAS_FIXAS = {
-    "ola": "Olá! Sou o assistente do CCM. Você quer saber sobre nossas **Atividades**, **Turmas** ou precisa de **Ajuda**?",
-    "ajuda": "Eu posso te ajudar com: <br>1. <b>Atividades/Dúvidas:</b> Basta perguntar.<br>2. <b>Turmas:</b> Digite o nome da turma ou apenas 'turmas'.<br>3. <b>Telefone:</b> Digite 'telefone'.",
-    "telefone": "<b>📞 PABX: 3396-5600</b><br>Consulte as opções de ramal na secretaria."
-}
 
 @app.route('/chat', methods=['POST'])
 def chat():
     dados = request.json
-    # .strip() remove espaços inúteis no início e no fim
-    msg_usuario = dados.get("mensagem", "").lower().strip()
-
-    # 1. BUSCA FLEXÍVEL NAS RESPOSTAS FIXAS
-    # Agora ele checa se a palavra-chave está CONTIDA na frase do usuário
-    for chave in RESPONSAS_FIXAS:
-        if chave in msg_usuario:
-            return jsonify({"resposta": RESPONSAS_FIXAS[chave]})
+    msg = dados.get("mensagem", "").lower().strip()
 
     try:
         spreadsheet = get_spreadsheet()
-        
-        # 2. BUSCA NA ABA TURMAS
-        if "turma" in msg_usuario or "classe" in msg_usuario:
+
+        # MENU: ATIVIDADES -> Puxa da aba TURMAS
+        if "atividades" in msg:
             aba_turmas = spreadsheet.worksheet("TURMAS")
-            dados_turmas = aba_turmas.get_all_records()
+            dados = aba_turmas.get_all_records()
             
-            for linha in dados_turmas:
-                nome_turma = str(linha.get('MODALIDADE', '')).lower().strip()
-                if nome_turma and nome_turma in msg_usuario:
-                    resp = f"<b>Turma: {linha.get('MODALIDADE')}</b><br>"
-                    resp += f"👨‍🏫 Professor: {linha.get('PROFESSOR', 'Não informado')}<br>"
-                    resp += f"⏰ Horário: {linha.get('HOR_AULAS', 'Não informado')}<br>"
-                    resp += f"🚪 Sala: {linha.get('ESPACO', 'Não informado')}"
-                    return jsonify({"resposta": resp})
+            tabela = "<b>📚 Nossas Atividades/Turmas:</b><br><table style='width:100%; border-collapse:collapse; font-size:12px;'>"
+            tabela += "<tr style='background-color:#ddd;'><th>Turma</th><th>Horário</th></tr>"
+            for linha in dados:
+                tabela += f"<tr><td>{linha.get('MODALIDADE')}</td><td>{linha.get('HOR_AULAS')}</td></tr>"
+            tabela += "</table>"
+            return jsonify({"resposta": tabela})
+
+        # MENU: SECRETARIA/FAQ -> Puxa da aba FAQ
+        elif "secretaria" in msg or "duvidas" in msg:
+            aba_faq = spreadsheet.worksheet("FAQ")
+            dados_faq = aba_faq.get_all_records()
             
-            # Lista geral de turmas
-            tabela_html = "<b>Aqui estão nossas turmas:</b><br><table style='width:100%; border-collapse:collapse; font-size:12px;'>"
-            tabela_html += "<tr style='background-color:#ddd;'><th>Turma</th><th>Horário</th></tr>"
-            for linha in dados_turmas:
-                tabela_html += f"<tr><td>{linha.get('carteirinhas do CEU')}</td><td>{linha.get('HOR_AULAS')}</td></tr>"
-            tabela_html += "</table>"
-            return jsonify({"resposta": tabela_html})
+            respostas = "<b>📋 Perguntas Frequentes:</b><br><br>"
+            for linha in dados_faq:
+                respostas += f"<b>{linha.get('Pergunta')}</b>: {linha.get('Resposta')}<br><br>"
+            return jsonify({"resposta": respostas})
 
-        # 3. BUSCA NA ABA FAQ
-        aba_faq = spreadsheet.worksheet("FAQ")
-        dados_faq = aba_faq.get_all_records()
-        
-        for linha in dados_faq:
-            pergunta_planilha = str(linha.get('Pergunta', '')).lower().strip()
-            if pergunta_planilha and pergunta_planilha in msg_usuario:
-                return jsonify({"resposta": linha.get('Resposta', 'Sem resposta cadastrada.')})
+        # MENU: TELEFONE
+        elif "telefone" in msg:
+            return jsonify({"resposta": "<b>📞 PABX: 3396-5600</b><br>Opção 1: Secretaria | Opção 2: CEI | Opção 3: EMEI | Opção 4: EMEF"})
 
-        return jsonify({"resposta": "Desculpe, não encontrei essa informação. Tente digitar 'ajuda' para ver o que posso fazer."})
+        # RESPOSTA PADRÃO
+        else:
+            return jsonify({"resposta": "Por favor, escolha uma das opções no menu abaixo para que eu possa te ajudar! 👇"})
 
     except Exception as e:
         print(f"Erro: {e}")
-        return jsonify({"resposta": "Ops! Estou com dificuldades para ler meus dados agora. Tente novamente em instantes!"})
+        return jsonify({"resposta": "Houve um erro ao acessar a planilha. Verifique as configurações."})
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
