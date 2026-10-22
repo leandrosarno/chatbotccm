@@ -7,11 +7,38 @@ CORS(app) # Isso permite que o HTML fale com o Python
 # Aqui criamos um "dicionário" de respostas simples
 # Você pode adicionar quantas quiser!
 RESPONSAS = {
-    "ola": "Olá! Sou o assistente do CEU Caminho do Mar. Em que posso ajudar?",
-    "horario": "o CEU funciona todos os dias, das 07h às 23h.",
-    "secretaria": "A secretaria funciona de segunda a sexta, das 07h às 20h e aos sábados das 09h às 16h.",
+    "ola": "Olá! Sou o assistente da escola. Em que posso ajudar?",
+    "horario": "As aulas começam às 07:30 e terminam às 12:30.",
+    "secretaria": "A secretaria funciona de segunda a sexta, das 08h às 17h.",
+    "provas": "As provas do bimestre serão na próxima semana. Confira o calendário!",
     "ajuda": "Você pode me perguntar sobre: Horários, Secretaria ou Provas.",
-    "telefone": "PABX 3396-5600 | Opção 1 Secretaria da Gestãos (assuntos sobre ações Culturais, Educacionais e Esportivas) | Opção 2 CEI (Centro de Educação Infantil) | Opção 3 EMEI (Escola Municipal de Ensino Infantil) | Opção 4 EMEF (Escola Municipal de Ensino Fundamental)"
+    
+    # Resposta do Telefone com Tabela HTML
+    "telefone": """
+    <b>📞 PABX: 3396-5600</b><br><br>
+    <table style='width:100%; border-collapse:collapse; font-size:12px;'>
+        <tr style='background-color:#ddd;'>
+            <th style='border:1px solid #ccc; padding:4px;'>Opção</th>
+            <th style='border:1px solid #ccc; padding:4px;'>Setor</th>
+        </tr>
+        <tr>
+            <td style='border:1px solid #ccc; padding:4px; text-align:center;'>1</td>
+            <td style='border:1px solid #ccc; padding:4px;'>Secretaria da Gestão</td>
+        </tr>
+        <tr>
+            <td style='border:1px solid #ccc; padding:4px; text-align:center;'>2</td>
+            <td style='border:1px solid #ccc; padding:4px;'>CEI (Educação Infantil)</td>
+        </tr>
+        <tr>
+            <td style='border:1px solid #ccc; padding:4px; text-align:center;'>3</td>
+            <td style='border:1px solid #ccc; padding:4px;'>EMEI (Ensino Infantil)</td>
+        </tr>
+        <tr>
+            <td style='border:1px solid #ccc; padding:4px; text-align:center;'>4</td>
+            <td style='border:1px solid #ccc; padding:4px;'>EMEF (Ensino Fundamental)</td>
+        </tr>
+    </table>
+    """
 }
 
 @app.route('/chat', methods=['POST'])
