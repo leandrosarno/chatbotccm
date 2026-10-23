@@ -46,7 +46,7 @@ def chat():
             tabela = "<b>📚 Nossas Atividades/Turmas:</b><br><table style='width:100%; border-collapse:collapse; font-size:12px;'>"
             tabela += "<tr style='background-color:#ddd;'><th>Turma</th><th>Horário</th></tr>"
             for linha in dados_t:
-                tabela += f"<tr><td>{linha.get('MODALIDADE', 'N/A')}</td><td>{linha.get('HOR_AULAS', 'N/A')}</td></tr>"
+                tabela += f"<tr><td>{linha.get('Nome da Turma', 'N/A')}</td><td>{linha.get('Horário', 'N/A')}</td></tr>"
             tabela += "</table>"
             return jsonify({"resposta": tabela})
 
