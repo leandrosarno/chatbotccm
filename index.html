@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Assistente Virtual do CEU CAMINHO DO MAR</title>
+<title>Assistente Virtual</title>
 <style>
 :root{--cor:#0b5d7a;--cor2:#e6f2f6;--bg:#eef2f5;--txt:#1b2630;--mut:#62707c}
 *{box-sizing:border-box;margin:0}
@@ -66,9 +66,9 @@ const CFG={
   sheetId:'1CM5X5d6yoK1_UceTw6Sq-XG-bvwrGxcZpzcbuO6Edyk',
   abaFaq:'FAQ',
   nomeBot:'Assistente Virtual',
-  escola:'CEU CAMINHO NDO MAR',
-  avatar:'MARINA AVATAR.png',
-  logo:'logo_branco_sem_fundo.png'
+  escola:'Nome da Escola',
+  avatar:'avatar.png',   // arquivo do avatar, na mesma pasta do index.html
+  logo:'logo.png'        // arquivo do logotipo
 };
 
 /* ===== UTILITÁRIOS ===== */
@@ -78,6 +78,8 @@ const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const ERRO='Não consegui acessar as informações agora. Tente novamente em instantes.';
+const erro=m=>Object.assign(new Error(m),{diag:1});
+let abaT='Turmas';
 
 function csv(t){const r=[];let l=[],c='',q=false;
   for(let i=0;i<t.length;i++){const ch=t[i];
@@ -93,8 +95,10 @@ function csv(t){const r=[];let l=[],c='',q=false;
 async function aba(nome){
   if(cache[nome])return cache[nome];
   const u=`https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(nome)}`;
-  const r=await fetch(u);if(!r.ok)throw new Error('sheet');
-  return cache[nome]=csv(await r.text()).slice(1).filter(l=>l.some(x=>x.trim()));
+  const r=await fetch(u);if(!r.ok)throw erro(ERRO);
+  const rows=csv(await r.text()).slice(1).filter(l=>l.some(x=>x.trim()));
+  if(!rows.length)throw erro(`Não encontrei dados na aba "${esc(nome)}". Confira se o nome é idêntico ao da planilha e se há linhas abaixo do cabeçalho.`);
+  return cache[nome]=rows;
 }
 
 /* ===== MENSAGENS ===== */
@@ -105,7 +109,7 @@ function msg(html,who='bot'){
 }
 async function bot(fn){
   const b=msg('<span class="dots"><i></i><i></i><i></i></span>');
-  const [,h]=await Promise.all([wait(550),fn().catch(()=>ERRO)]);
+  const [,h]=await Promise.all([wait(550),fn().catch(e=>e.diag?e.message:ERRO)]);
   b.innerHTML=h;chat.scrollTop=chat.scrollHeight;
 }
 
@@ -119,7 +123,7 @@ const R={
   docs:async n=>{const r=await aba(n);return r.length?'Estes são os documentos disponíveis:'+lista(r):vazio},
   unidades:async n=>{const r=await aba(n);return r.length?'Conheça nossas unidades:'+r.map(x=>`<div class="card"><h4>${esc(x[0])}</h4><p>${esc(x[1])}</p><p>Atendimento: ${esc(x[2])}</p><p>Telefone: <a href="tel:${esc((x[3]||'').replace(/[^\d+]/g,''))}">${esc(x[3])}</a></p></div>`).join(''):vazio},
   turmas:async n=>{
-    const t=await turmas(n),ano=new Date().getFullYear();
+    abaT=n;const t=await turmas(n),ano=new Date().getFullYear();
     if(!t.length)return `Ainda não há turmas cadastradas para ${ano}.`;
     const mods=[...new Set(t.map(x=>x.mod))].sort();
     return `Qual atividade você procura? Mostro as turmas de ${ano}.<div class="row">`+
@@ -131,18 +135,20 @@ const R={
 /* Turmas do ano corrente; mesma turma em vários dias vira um único cartão */
 async function turmas(n){
   const ano=new Date().getFullYear(),m=new Map();
-  (await aba(n)).forEach(r=>{
+  const rows=await aba(n);
+  rows.forEach(r=>{
     if(parseInt(String(r[10]).replace(/\D/g,''))!==ano)return;
     const id=((r[0]||'')+(r[1]||'')).trim();
     if(!m.has(id))m.set(id,{id,mod:(r[2]||'').trim(),fx:r[3],prof:r[5],hor:[]});
     m.get(id).hor.push(`${r[8]}: ${r[9]}`);
   });
+  if(!m.size)throw erro(`Li ${rows.length} linhas da aba "${esc(n)}", mas nenhuma com o ano ${ano} na coluna K. Valores encontrados lá: ${esc([...new Set(rows.map(r=>String(r[10]).trim()))].slice(0,5).join(', '))}.`);
   return[...m.values()];
 }
 async function mostrarTurmas(mod){
   msg(esc(mod||'Ver todas'),'user');
   await bot(async()=>{
-    const t=(await turmas('TURMAS')).filter(x=>!mod||x.mod==mod);
+    const t=(await turmas(abaT)).filter(x=>!mod||x.mod==mod);
     if(!t.length)return 'Não encontrei turmas para essa atividade.';
     return `Encontrei ${t.length} turma(s):`+t.map(x=>`<div class="card"><h4>${esc(x.id)}</h4><p>${esc(x.mod)}</p><p>Faixa etária: ${esc(x.fx)}</p><p>Professor(a): ${esc(x.prof)}</p><p>${x.hor.map(esc).join('<br>')}</p></div>`).join('');
   });
@@ -150,7 +156,7 @@ async function mostrarTurmas(mod){
 
 async function perguntar(texto,tab){
   msg(esc(texto),'user');
-  const f=R[norm(tab)]||(async n=>{const r=await aba(n);return r.length?lista(r):vazio});
+  const f=R[Object.keys(R).find(k=>norm(tab).includes(k))]||(async n=>{const r=await aba(n);return r.length?lista(r):vazio});
   await bot(()=>f(tab));
 }
 
