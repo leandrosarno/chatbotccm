@@ -142,7 +142,7 @@ async function turmas(n){
 async function mostrarTurmas(mod){
   msg(esc(mod||'Ver todas'),'user');
   await bot(async()=>{
-    const t=(await turmas('Turmas')).filter(x=>!mod||x.mod==mod);
+    const t=(await turmas('TURMAS')).filter(x=>!mod||x.mod==mod);
     if(!t.length)return 'Não encontrei turmas para essa atividade.';
     return `Encontrei ${t.length} turma(s):`+t.map(x=>`<div class="card"><h4>${esc(x.id)}</h4><p>${esc(x.mod)}</p><p>Faixa etária: ${esc(x.fx)}</p><p>Professor(a): ${esc(x.prof)}</p><p>${x.hor.map(esc).join('<br>')}</p></div>`).join('');
   });
