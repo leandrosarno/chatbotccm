@@ -1,120 +1,186 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CCM 🎓</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        #chat-container { width: 380px; height: 600px; background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
-        #header { background: #0084ff; color: white; padding: 15px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-        #logo { width: 50px; height: 50px; border-radius: 50%; background: white; padding: 5px; object-fit: contain; }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background-color: #f9f9f9; }
-        
-        /* ESTRUTURA ROBUSTA PARA O AVATAR */
-        .msg-wrapper { display: flex; align-items: flex-end; gap: 8px; max-width: 85%; margin-bottom: 10px; }
-        .bot-wrapper { align-self: flex-start; flex-direction: row; }
-        .user-wrapper { align-self: flex-end; flex-direction: row-reverse; }
-        .avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-        
-        .msg { padding: 10px 15px; border-radius: 15px; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
-        .user { background: #0084ff; color: white; border-bottom-right-radius: 2px; }
-        .bot { background: #e4e6eb; color: #333; border-bottom-left-radius: 2px; }
-
-        /* ÁREA DE BOTÕES */
-        #menu-options { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 10px; background: #f9f9f9; }
-        .btn-option { background: white; border: 1px solid #0084ff; color: #0084ff; padding: 6px 12px; border-radius: 15px; cursor: pointer; font-size: 13px; transition: 0.3s; }
-        .btn-option:hover { background: #0084ff; color: white; }
-
-        #input-area { display: flex; padding: 15px; border-top: 1px solid #eee; background: white; }
-        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 25px; outline: none; }
-        button { margin-left: 10px; padding: 10px 20px; background: #0084ff; color: white; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; }
-        .msg table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assistente Virtual do CEU CAMINHO DO MAR</title>
+<style>
+:root{--cor:#0b5d7a;--cor2:#e6f2f6;--bg:#eef2f5;--txt:#1b2630;--mut:#62707c}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);display:flex;justify-content:center}
+.app{width:100%;max-width:720px;height:100dvh;display:flex;flex-direction:column;background:#fff;box-shadow:0 0 40px #0001}
+header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--cor);color:#fff}
+header div{flex:1}
+header h1{font-size:16px;font-weight:650;line-height:1.25}
+header small{font-size:12px;opacity:.9}
+header small:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:#5fe38a;margin-right:6px}
+#logo{height:38px;max-width:120px;object-fit:contain;background:#fff;border-radius:8px;padding:3px}
+.av{width:36px;height:36px;border-radius:50%;object-fit:cover;background:var(--cor2);flex:none}
+header .av{width:46px;height:46px;border:2px solid #fff8}
+#chat{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.m{display:flex;gap:8px;align-items:flex-end;max-width:92%;animation:in .25s ease}
+.m.user{align-self:flex-end}
+.b{padding:10px 14px;border-radius:18px;line-height:1.45;font-size:15px;background:#fff;box-shadow:0 1px 2px #0001;overflow-wrap:anywhere;min-width:0}
+.bot .b{border-bottom-left-radius:4px}
+.user .b{background:var(--cor);color:#fff;border-bottom-right-radius:4px}
+.l{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:8px}
+.l li{display:flex;flex-direction:column;padding:8px 10px;background:var(--cor2);border-radius:10px}
+.l span{color:var(--mut);font-size:14px}
+.card{margin-top:8px;padding:10px 12px;border:1px solid #d9e1e7;border-radius:12px;font-size:14px}
+.card h4{font-size:15px;color:var(--cor);margin-bottom:4px}
+.card p{color:var(--mut)}
+.card a{color:var(--cor)}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.chip{border:1px solid var(--cor);color:var(--cor);background:#fff;border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.chip:hover,.chip:focus-visible{background:var(--cor);color:#fff;outline:0}
+footer{border-top:1px solid #e1e7ec;padding:10px 12px;background:#fff}
+#chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px}
+form{display:flex;gap:8px}
+input{flex:1;min-width:0;border:1px solid #d3dce3;border-radius:999px;padding:10px 16px;font:inherit;font-size:16px;outline-color:var(--cor)}
+.send{border:0;background:var(--cor);color:#fff;border-radius:50%;width:44px;height:44px;font-size:18px;cursor:pointer}
+.dots i{display:inline-block;width:7px;height:7px;margin:0 2px;border-radius:50%;background:var(--mut);animation:p 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes p{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
 </head>
 <body>
-
-<div id="chat-container">
-    <div id="header">
-        <img src="logo_branco_sem_fundo.png" alt="Logo" id="logo">
-        <div style="font-weight: bold;">Assistente do CCM 🎓</div>
-    </div>
-    <div id="messages"></div>
-    <div id="menu-options">
-        <button class="btn-option" onclick="sendOption('atividades')">📚 Atividades</button>
-        <button class="btn-option" onclick="sendOption('secretaria')">🏢 Secretaria/FAQ</button>
-        <button class="btn-option" onclick="sendOption('telefone')">📞 Telefone</button>
-    </div>
-    <div id="input-area">
-        <input type="text" id="user-input" placeholder="Digite sua dúvida...">
-        <button onclick="sendMessage()">Enviar</button>
-    </div>
+<div class="app">
+  <header>
+    <img class="av" id="hav" alt="">
+    <div><h1 id="titulo"></h1><small>Online</small></div>
+    <img id="logo" alt="Logotipo da escola">
+  </header>
+  <main id="chat" aria-live="polite"></main>
+  <footer>
+    <div id="chips"></div>
+    <form id="f"><input id="q" placeholder="Digite sua dúvida ou escolha uma opção" autocomplete="off"><button class="send" aria-label="Enviar">➤</button></form>
+  </footer>
 </div>
 
 <script>
-    const msgDiv = document.getElementById('messages');
-    const RENDER_URL = 'https://chatbotccm.onrender.com/chat';
+/* ===== CONFIGURAÇÃO ===== */
+const CFG={
+  sheetId:'1CM5X5d6yoK1_UceTw6Sq-XG-bvwrGxcZpzcbuO6Edyk',
+  abaFaq:'FAQ',
+  nomeBot:'Assistente Virtual',
+  escola:'Nome da Escola',
+  avatar:'avatar.png',   // arquivo do avatar, na mesma pasta do index.html
+  logo:'logo.png'        // arquivo do logotipo
+};
 
-    // FUNÇÃO PARA ADICIONAR MENSAGEM SEM QUEBRAR O HTML
-    function appendMessage(text, type) {
-        const wrapper = document.createElement('div');
-        wrapper.className = `msg-wrapper ${type === 'bot' ? 'bot-wrapper' : 'user-wrapper'}`;
+/* ===== UTILITÁRIOS ===== */
+const $=s=>document.querySelector(s),chat=$('#chat'),cache={};
+let faq=[];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const ERRO='Não consegui acessar as informações agora. Tente novamente em instantes.';
 
-        if (type === 'bot') {
-            const img = document.createElement('img');
-            img.src = 'MARINA AVATAR.png'; // Caminho da sua imagem no GitHub
-            img.className = 'avatar';
-            wrapper.appendChild(img);
-        }
+function csv(t){const r=[];let l=[],c='',q=false;
+  for(let i=0;i<t.length;i++){const ch=t[i];
+    if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}
+    else if(ch=='"')q=true;
+    else if(ch==','){l.push(c);c=''}
+    else if(ch=='\n'||ch=='\r'){if(ch=='\r'&&t[i+1]=='\n')i++;l.push(c);r.push(l);l=[];c=''}
+    else c+=ch}
+  if(c||l.length){l.push(c);r.push(l)}
+  return r}
 
-        const msg = document.createElement('div');
-        msg.className = `msg ${type}`;
-        msg.innerHTML = text; //Permite HTML como a tabela
-        wrapper.appendChild(msg);
+/* Lê uma aba (a linha 1 é tratada como cabeçalho e ignorada) */
+async function aba(nome){
+  if(cache[nome])return cache[nome];
+  const u=`https://docs.google.com/spreadsheets/d/${CFG.sheetId}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(nome)}`;
+  const r=await fetch(u);if(!r.ok)throw new Error('sheet');
+  return cache[nome]=csv(await r.text()).slice(1).filter(l=>l.some(x=>x.trim()));
+}
 
-        if (type === 'user') {
-            const img = document.createElement('img');
-            img.src = 'https://cdn-icons-png.flaticon.com/512/1144/1144760.png';
-            img.className = 'avatar';
-            wrapper.appendChild(img);
-        }
+/* ===== MENSAGENS ===== */
+function msg(html,who='bot'){
+  const d=document.createElement('div');d.className='m '+who;
+  d.innerHTML=(who=='bot'?`<img class="av" src="${CFG.avatar}" alt="" onerror="this.style.opacity=0">`:'')+`<div class="b">${html}</div>`;
+  chat.append(d);chat.scrollTop=chat.scrollHeight;return d.querySelector('.b');
+}
+async function bot(fn){
+  const b=msg('<span class="dots"><i></i><i></i><i></i></span>');
+  const [,h]=await Promise.all([wait(550),fn().catch(()=>ERRO)]);
+  b.innerHTML=h;chat.scrollTop=chat.scrollHeight;
+}
 
-        msgDiv.appendChild(wrapper);
-        msgDiv.scrollTop = msgDiv.scrollHeight;
-    }
+/* ===== RESPOSTAS POR ABA ===== */
+const lista=(rows,fa)=>'<ul class="l">'+rows.map(r=>{const[a,b]=fa?fa(r):[r[0],r[1]];return `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`}).join('')+'</ul>';
+const vazio='Ainda não há informações cadastradas nesta seção.';
 
-    // Função para os botões de opção
-    function sendOption(option) {
-        document.getElementById('user-input').value = option;
-        sendMessage();
-    }
+const R={
+  telefones:async n=>{const r=await aba(n);return r.length?'Estes são os nossos telefones e opções de atendimento:'+lista(r,x=>['Opção '+x[0],x[1]]):vazio},
+  secretaria:async n=>{const r=await aba(n);return r.length?'A secretaria atende nos seguintes dias e horários:'+lista(r):vazio},
+  docs:async n=>{const r=await aba(n);return r.length?'Estes são os documentos disponíveis:'+lista(r):vazio},
+  unidades:async n=>{const r=await aba(n);return r.length?'Conheça nossas unidades:'+r.map(x=>`<div class="card"><h4>${esc(x[0])}</h4><p>${esc(x[1])}</p><p>Atendimento: ${esc(x[2])}</p><p>Telefone: <a href="tel:${esc((x[3]||'').replace(/[^\d+]/g,''))}">${esc(x[3])}</a></p></div>`).join(''):vazio},
+  turmas:async n=>{
+    const t=await turmas(n),ano=new Date().getFullYear();
+    if(!t.length)return `Ainda não há turmas cadastradas para ${ano}.`;
+    const mods=[...new Set(t.map(x=>x.mod))].sort();
+    return `Qual atividade você procura? Mostro as turmas de ${ano}.<div class="row">`+
+      mods.map(m=>`<button class="chip" data-mod="${esc(m)}">${esc(m)}</button>`).join('')+
+      `<button class="chip" data-mod="">Ver todas</button></div>`;
+  }
+};
 
-    async function sendMessage() {
-        const input = document.getElementById('user-input');
-        const text = input.value.trim();
-        if (!text) return;
+/* Turmas do ano corrente; mesma turma em vários dias vira um único cartão */
+async function turmas(n){
+  const ano=new Date().getFullYear(),m=new Map();
+  (await aba(n)).forEach(r=>{
+    if(parseInt(String(r[10]).replace(/\D/g,''))!==ano)return;
+    const id=((r[0]||'')+(r[1]||'')).trim();
+    if(!m.has(id))m.set(id,{id,mod:(r[2]||'').trim(),fx:r[3],prof:r[5],hor:[]});
+    m.get(id).hor.push(`${r[8]}: ${r[9]}`);
+  });
+  return[...m.values()];
+}
+async function mostrarTurmas(mod){
+  msg(esc(mod||'Ver todas'),'user');
+  await bot(async()=>{
+    const t=(await turmas('Turmas')).filter(x=>!mod||x.mod==mod);
+    if(!t.length)return 'Não encontrei turmas para essa atividade.';
+    return `Encontrei ${t.length} turma(s):`+t.map(x=>`<div class="card"><h4>${esc(x.id)}</h4><p>${esc(x.mod)}</p><p>Faixa etária: ${esc(x.fx)}</p><p>Professor(a): ${esc(x.prof)}</p><p>${x.hor.map(esc).join('<br>')}</p></div>`).join('');
+  });
+}
 
-        appendMessage(text, 'user');
-        input.value = "";
+async function perguntar(texto,tab){
+  msg(esc(texto),'user');
+  const f=R[norm(tab)]||(async n=>{const r=await aba(n);return r.length?lista(r):vazio});
+  await bot(()=>f(tab));
+}
 
-        try {
-            const response = await fetch(RENDER_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mensagem: text })
-            });
-            const data = await response.json();
-            appendMessage(data.resposta, 'bot');
-        } catch (e) {
-            appendMessage("Ops! Servidor offline ou acordando...", 'bot');
-        }
-    }
+/* ===== EVENTOS ===== */
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.chip');if(!c)return;
+  if('mod' in c.dataset)mostrarTurmas(c.dataset.mod);
+  else if(c.dataset.tab)perguntar(c.textContent,c.dataset.tab);
+});
+$('#f').onsubmit=e=>{
+  e.preventDefault();const i=$('#q'),v=i.value.trim();if(!v)return;i.value='';
+  const n=norm(v),f=faq.find(x=>norm(x[0]).includes(n)||n.includes(norm(x[0]))||norm(x[1]).includes(n));
+  if(f)perguntar(v,f[1]);
+  else{msg(esc(v),'user');bot(async()=>'Ainda não sei responder isso. Escolha uma das opções abaixo.')}
+};
 
-    // Início automático
-    window.onload = () => {
-        appendMessage("Olá! Bem-vindo ao Assistente do CCM. Como posso te ajudar? Use as opções abaixo!", 'bot');
-    };
+/* ===== INÍCIO ===== */
+(async()=>{
+  document.title=CFG.escola+' - '+CFG.nomeBot;
+  $('#titulo').textContent=CFG.nomeBot;
+  $('#hav').src=CFG.avatar;$('#hav').onerror=function(){this.style.opacity=0};
+  $('#logo').src=CFG.logo;$('#logo').onerror=function(){this.remove()};
+  await bot(async()=>{
+    try{
+      faq=(await aba(CFG.abaFaq)).filter(r=>r[0]&&r[1]);
+      $('#chips').innerHTML=faq.map(r=>`<button class="chip" data-tab="${esc(r[1])}">${esc(r[0])}</button>`).join('');
+    }catch(e){return ERRO}
+    return `Olá! Eu sou o ${esc(CFG.nomeBot)} de ${esc(CFG.escola)}. Escolha uma opção abaixo ou digite sua dúvida.`;
+  });
+})();
 </script>
-
 </body>
 </html>
